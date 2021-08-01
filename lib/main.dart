@@ -51,6 +51,7 @@ class CartState with ChangeNotifier {
 
   /// Adds a new CartItem to the cart. Notifies any consumers.
   void addToCart({required CartItem item}) {
+    //Do not assume the item is not already in the cart, check.
     if (_productMap.containsKey(item.id)) {
       updateQuantity(id: item.id, newQty: item.quantity);
       return;
@@ -61,9 +62,9 @@ class CartState with ChangeNotifier {
   }
 
   /// Updates the quantity of the Cart item with this id. Notifies any consumers.
-
   void updateQuantity({required int id, required int newQty}) {
     if (_productMap.containsKey(id)) {
+      //The item should not be null
       CartItem item = _productMap[id]!;
       //Minus all the items of this type from the cart.
       _totalCartItems -= item.quantity;
@@ -122,7 +123,6 @@ class CartControls extends StatelessWidget {
     CartItem item = new CartItem(nextCartItemId, nextCartItemName,
         nextCartItemQuantity); // Actually use the CartItem constructor to assign id, name and quantity
 
-    // TODO: Get the cart current state through Provider. Add this cart item to cart.
     CartState _currentState = context.read<CartState>();
     _currentState.addToCart(item: item);
   }
@@ -167,7 +167,6 @@ class ListOfCartItems extends StatelessWidget {
   }
 
   /// Handles removing 1 to the current cart item quantity.
-  /// Don't forget: we can't have negative numbers of an item in the cart
   void _decrementQuantity(BuildContext context, int id, int delta) {
     CartState _currentState = context.read<CartState>();
     _currentState.updateQuantity(id: id, newQty: delta);
@@ -211,7 +210,17 @@ class CartSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CartState>(
       builder: (BuildContext context, CartState cart, Widget? child) {
-        return Text("Total items: ${cart.totalCartItems}");
+        return Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Container(
+              color: Colors.blue,
+              child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    "Total items: ${cart.totalCartItems}",
+                    style: TextStyle(color: Colors.white),
+                  )),
+            ));
       },
     );
   }
