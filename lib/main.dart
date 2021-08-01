@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
+import 'package:provider_test/painter/graph_painter.dart';
+import 'package:provider_test/widgets/item_card.dart';
 
 /// Represenst a Cart Item. Has <int>`id`, <String>`name`, <int>`quantity`
 class CartItem {
@@ -96,6 +99,30 @@ class MyCartApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: "Shopping Cart Demo",
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Colors.lightBlue[800],
+        accentColor: Colors.pinkAccent,
+        fontFamily: 'Roboto',
+        textTheme: const TextTheme(
+            headline1: TextStyle(
+                fontSize: 32.0,
+                fontWeight: FontWeight.w700,
+                color: Colors.white),
+            headline2: TextStyle(
+                fontSize: 22.0,
+                fontWeight: FontWeight.w700,
+                color: Colors.white),
+            bodyText1: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.normal,
+                color: Colors.white),
+            button: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w400,
+                color: Colors.purpleAccent)),
+      ),
       home: Scaffold(
         body: Container(
           child: Column(
@@ -136,14 +163,20 @@ class CartControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget addCartItemWidget = TextButton(
-      child: Text('Add Item'),
+      child: Text(
+        'Add Item',
+        style: Theme.of(context).textTheme.button,
+      ),
       onPressed: () {
         _addItemPressed(context);
       },
     );
 
     final Widget clearCartWidget = TextButton(
-      child: Text('Clear Cart'),
+      child: Text(
+        'Clear Cart',
+        style: Theme.of(context).textTheme.button,
+      ),
       onPressed: () {
         _clearCartPressed(context);
       },
@@ -174,34 +207,26 @@ class ListOfCartItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CartState>(
-        builder: (BuildContext context, CartState cart, Widget? child) {
-      if (cart.totalCartItems == 0) {
-        return Text("The cart is currently empty. Add an item!");
-      }
+    return Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Consumer<CartState>(
+            builder: (BuildContext context, CartState cart, Widget? child) {
+          if (cart.totalCartItems == 0) {
+            return Text(
+              "The cart is currently empty. Add an item!",
+              style: Theme.of(context).textTheme.headline1,
+            );
+          }
 
-      return Column(
-        children: cart.products
-            .map(
-              (c) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text("${c.name}: X ${c.quantity}"),
-                    IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () => _incrementQuantity(context, c.id, 1)),
-                    IconButton(
-                        icon: Icon(Icons.remove),
-                        onPressed: () => _decrementQuantity(context, c.id, -1)),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-      );
-    });
+          return Column(
+            children: cart.products
+                .map((c) => ItemCard(
+                    increment: _incrementQuantity,
+                    decrement: _decrementQuantity,
+                    item: c))
+                .toList(),
+          );
+        }));
   }
 }
 
@@ -213,12 +238,16 @@ class CartSummary extends StatelessWidget {
         return Padding(
             padding: EdgeInsets.all(16.0),
             child: Container(
-              color: Colors.blue,
+              decoration: BoxDecoration(
+                  color: Theme.of(context).accentColor,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16.0),
+                      bottomRight: Radius.circular(16.0))),
               child: Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
                     "Total items: ${cart.totalCartItems}",
-                    style: TextStyle(color: Colors.white),
+                    style: Theme.of(context).textTheme.headline2,
                   )),
             ));
       },
