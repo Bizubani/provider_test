@@ -28,7 +28,9 @@ class CartItem {
 
 /// Manages a cart. Implements ChangeNotifier
 class CartState with ChangeNotifier {
-  List<CartItem> _products = [];
+  /// Use a map instead of a list for faster lookups. Since the id should be
+  /// unique, it makes a fantastic key
+  Map<int, CartItem> _productMap = {};
   int _totalCartItems = 0;
 
   CartState();
@@ -37,26 +39,23 @@ class CartState with ChangeNotifier {
   int get totalCartItems => _totalCartItems; //return actual cart volume.
 
   /// The list of CartItems in the cart
-  List<CartItem> get products => _products;
+  List<CartItem> get products => _productMap.values.toList();
 
   /// Clears the cart. Notifies any consumers.
   void clearCart() {
     //Set the cart to it's initial state
-    _products = [];
+    _productMap = {};
     _totalCartItems = 0;
     notifyListeners();
   }
 
   /// Adds a new CartItem to the cart. Notifies any consumers.
   void addToCart({required CartItem item}) {
-    //Don't assume the item is not in the cart, check first. Might change to Map
-    for (CartItem product in _products) {
-      if (product.id == item.id) {
-        updateQuantity(id: item.id, newQty: item.quantity);
-        return;
-      }
+    if (_productMap.containsKey(item.id)) {
+      updateQuantity(id: item.id, newQty: item.quantity);
+      return;
     }
-    _products.add(item);
+    _productMap[item.id] = item;
     _totalCartItems += item.quantity;
     notifyListeners();
   }
@@ -64,17 +63,21 @@ class CartState with ChangeNotifier {
   /// Updates the quantity of the Cart item with this id. Notifies any consumers.
 
   void updateQuantity({required int id, required int newQty}) {
-    for (CartItem product in _products) {
-      if (product.id == id) {
-        //Minus all the items of this type from the cart.
-        _totalCartItems -= product.quantity;
-        //Then modify the quantity. This will always end in a valid state as it can
-        //never go lower than zero
-        product.updateQuantity(newQty);
+    if (_productMap.containsKey(id)) {
+      CartItem item = _productMap[id]!;
+      //Minus all the items of this type from the cart.
+      _totalCartItems -= item.quantity;
+
+      ///Then modify the quantity. This will always end in a valid state as it
+      /// can never go lower than zero.
+      if (item.updateQuantity(newQty) == 0) {
+        //If after updating the quantity there are zero in the cart, remove it
+        _productMap.remove(id);
+      } else {
         //Add back the new quantity to the total items
-        _totalCartItems += product.quantity;
-        notifyListeners();
+        _totalCartItems += item.quantity;
       }
+      notifyListeners();
     }
   }
 }
@@ -178,25 +181,27 @@ class ListOfCartItems extends StatelessWidget {
         return Text("The cart is currently empty. Add an item!");
       }
 
-      return Column(children: [
-        ...cart.products.map(
-          (c) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("${c.name}: X ${c.quantity}"),
-                IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () => _incrementQuantity(context, c.id, 1)),
-                IconButton(
-                    icon: Icon(Icons.remove),
-                    onPressed: () => _decrementQuantity(context, c.id, -1)),
-              ],
-            ),
-          ),
-        ),
-      ]);
+      return Column(
+        children: cart.products
+            .map(
+              (c) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text("${c.name}: X ${c.quantity}"),
+                    IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () => _incrementQuantity(context, c.id, 1)),
+                    IconButton(
+                        icon: Icon(Icons.remove),
+                        onPressed: () => _decrementQuantity(context, c.id, -1)),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      );
     });
   }
 }
