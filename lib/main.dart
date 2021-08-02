@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
-import 'package:provider_test/painter/graph_painter.dart';
 import 'package:provider_test/widgets/item_card.dart';
 
 /// Represenst a Cart Item. Has <int>`id`, <String>`name`, <int>`quantity`
@@ -11,6 +10,9 @@ class CartItem {
   final int _id;
   final String _name;
   int _quantity;
+  ///Cap on the amount of a single item you can purchase. Maybe this should
+  ///differ on a per item basis.
+  final int _maxAllowable = 20;
 
   int get quantity => _quantity;
   String get name => _name;
@@ -23,6 +25,7 @@ class CartItem {
     // Cart will finish in a legitmate state. No negative quantity
     _quantity += delta;
     if (_quantity < 0) _quantity = 0;
+    if (_quantity > _maxAllowable) _quantity = _maxAllowable;
     return _quantity;
   }
 

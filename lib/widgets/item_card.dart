@@ -20,7 +20,7 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    Size rectSize = Size(size.width * 0.40, size.height * 0.12);
+    Size rectSize = Size(size.width * 0.25, size.height * 0.12);
     return Padding(
         padding: const EdgeInsets.all(8.0),
         child: FittedBox(
@@ -36,6 +36,8 @@ class ItemCard extends StatelessWidget {
                 Card(
                   elevation: 2.0,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       ListTile(
                         leading: Icon(icons[item.id % icons.length]),
